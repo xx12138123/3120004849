@@ -39,7 +39,7 @@ def get_word_frequency(article):
     # 计算词频
     counts = {}
     for word in seg_list:
-        if len(word) == 1:
+        if len(word) <= 1:
             continue
         counts[word] = counts.get(word, 0) + 1
     items = list(counts.items())
@@ -48,10 +48,12 @@ def get_word_frequency(article):
     return items
 
 
+# hash函数
 def get_word_hash(word):
     return hashlib.md5(word.encode(encoding="utf8")).digest()
 
 
+# 对文章生成特征
 def get_article_hash(article):
     seg_list = get_word_frequency(article)
     # 计算所有分词次数总和
@@ -70,21 +72,24 @@ def get_article_hash(article):
                 hash_result[bi] -= k
             else:
                 hash_result[bi] += k
-        ''' 旧算法，不直观
+        ''' # 旧算法，不直观
         for bi in range(len(hash_bytes)):
             for ji in range(8):
                 r = hash_bytes[bi] & (0x01 << ji)
                 if r == 0:
                     hash_result[bi*8+7-ji] -= k
                 else:
-                    hash_result[bi * 8 + 7 - ji] += k'''
+                    hash_result[bi * 8 + 7 - ji] += k '''
     # 返回真值列表
     return [hash_result[i] > 0 for i in range(len(hash_result))]
 
 
+# 比较两篇文章
 def compare_article(article_a, article_b):
     article_a_hash = get_article_hash(article_a)
     article_b_hash = get_article_hash(article_b)
+    if len(article_a_hash) < 10 or len(article_b_hash) < 10:
+        return -1
     distance = 0
     for i in range(SPLIT_SIZE):
         if article_a_hash[i] != article_b_hash[i]:
